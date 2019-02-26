@@ -34,3 +34,7 @@ def edit(id):
 @users_blueprint.route('/<id>', methods=['POST'])
 def update(id):
     pass
+
+@users_blueprint.route('/upload', methods=['POST'])
+def upload():
+    return render_template('users/edit_profile_pic.html')
