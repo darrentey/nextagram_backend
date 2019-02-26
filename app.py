@@ -16,6 +16,7 @@ else:
 
 @app.before_request
 def before_request():
+    # db.close()
     db.connect()
 
 

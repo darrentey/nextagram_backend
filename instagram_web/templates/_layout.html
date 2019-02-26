@@ -35,13 +35,12 @@
                 </div>
                 <!-- Navbar Right Side -->
                 <div class="navbar-nav">
-                  {% if current_user.is_annonymous %}
-                  <a class="nav-item nav-link" href="{{ url_for('login') }}">Login</a>
-                  <a class="nav-item nav-link" href="{{ url_for('register') }}">Register</a>
+                  {% if current_user.is_anonymous %}
+                  <a class="nav-item nav-link" href="{{ url_for('users.login') }}">Login</a>
+                  <a class="nav-item nav-link" href="{{ url_for('users.register') }}">Register</a>
                   {% else %}
-                  <a class="nav-item nav-link" href="{{ url_for('home') }}">Logout</a>
+                  <a class="nav-item nav-link" href="{{ url_for('users.logout') }}">Logout</a>
                   {% endif %}
-
                 </div>
               </div>
               <form class="form-inline my-2 my-lg-0">

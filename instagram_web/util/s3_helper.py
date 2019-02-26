@@ -26,3 +26,5 @@ def upload_file_to_s3(file, bucket_name, acl="public-read"):
         # This is a catch all exception, edit this part to fit your needs.
         print("Something Happened: ", e)
         return e
+
+    return "{}{}".format(app.config["S3_LOCATION"], file.filename)
