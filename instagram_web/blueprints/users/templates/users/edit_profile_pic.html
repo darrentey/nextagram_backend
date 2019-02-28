@@ -4,11 +4,11 @@
 Upload
 {% endblock %}
 
-{% block body %}
+{% block content %}
 
 <h1>Upload Your Files Bro</h1>
 
-    <form action="{{url_for('users.submit')}}" method="POST" enctype="multipart/form-data">
+    <form action="{{url_for('users.upload_file')}}" method="POST" enctype="multipart/form-data">
 
         <label for="user_file">Upload Your File</label>
         <br></br>

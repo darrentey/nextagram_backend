@@ -40,6 +40,7 @@
                   <a class="nav-item nav-link" href="{{ url_for('users.register') }}">Register</a>
                   {% else %}
                   <a class="nav-item nav-link" href="{{ url_for('users.logout') }}">Logout</a>
+                  <a class="nav-item nav-link" href="{{ url_for('users.edit', id=current_user.id) }}">Edit User Profile</a>
                   {% endif %}
                 </div>
               </div>

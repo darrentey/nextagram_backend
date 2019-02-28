@@ -1,16 +1,18 @@
 from app import app
 from flask import Blueprint, render_template
 from flask import Flask,render_template,url_for, flash, redirect, request
-from instagram_web.blueprints.users.forms import RegistrationForm, LoginForm
+from instagram_web.blueprints.users.forms import RegistrationForm, LoginForm, UpdateForm
 from flask_login import login_user, logout_user, login_required, LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.user import User
-from flask_login import login_user, login_required, LoginManager
+from flask_login import login_user, login_required, LoginManager, current_user
+from werkzeug.utils import secure_filename
+from instagram_web.util.s3_helper import upload_file_to_s3
 
 
 users_blueprint = Blueprint('users',
                             __name__,
-                            template_folder='templates/users')
+                            template_folder='templates/')
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -20,6 +22,11 @@ def load_user(user_id):
     return User.get_or_none(User.id == user_id)
 
 
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    
 @users_blueprint.route('/new', methods=['GET'])
 def new():
     return render_template('new.html')
@@ -39,17 +46,31 @@ def show(username):
 def index():
     return "USERS"
 
-
-@users_blueprint.route('/<id>/edit', methods=['GET'])
+@users_blueprint.route('/<id>/edit', methods=['GET', 'POST'])
 def edit(id):
-    pass
+    form = UpdateForm()
+    user = User.get_by_id(id)
+    return render_template('users/edit.html', form=form, user=user)
 
-
-@users_blueprint.route('/<id>', methods=['POST'])
+@users_blueprint.route('/<id>/update', methods=['POST'])
 def update(id):
-    pass
+    form = UpdateForm()
+    user = User.get_by_id(id)
+    if form.validate_on_submit():
+        update = User.update(
+            username=form.username.data,
+            email=form.email.data
+        ).where(User.id == user.id)
+        if update.execute():
+            flash('Update Successful', 'success')
+            return redirect(url_for('users.edit', id=user.id))
+            # Handle what happens when user is updated
+        else:
+            flash('Error', 'danger')
+    return render_template('users/edit.html', form=form, user=user)
+            # Handle what happends when user isn't updated 
 
-@users_blueprint.route('/upload', methods=['POST'])
+@users_blueprint.route('/upload', methods=['GET'])
 def upload():
     return render_template('users/edit_profile_pic.html')
 
@@ -66,7 +87,7 @@ def login():
             return redirect(url_for('home'))  
         else:
              flash('Login unsuccessful. Please check username and password', 'danger')   
-    return render_template('login.html', title='Login', form=form)
+    return render_template('users/login.html', title='Login', form=form)
 
 
 @users_blueprint.route("/register", methods=['GET', 'POST'])
@@ -81,7 +102,7 @@ def register():
         new_user.save()
         flash(f'Account created for {form.username.data}!', 'success')
         return redirect(url_for('home'))
-    return render_template('register.html', title='Register', form=form)
+    return render_template('users/register.html', title='Register', form=form)
 
 @users_blueprint.route('/logout')
 @login_required
@@ -89,3 +110,39 @@ def logout():
 	logout_user()
 	flash("You've been logged out!", "success")
 	return redirect(url_for('home'))
+
+    
+@users_blueprint.route("/upload", methods=["POST"])
+def upload_file():
+
+	# A
+    if "user_file" not in request.files:
+        return "No user_file key in request.files"
+
+	# B
+    file    = request.files["user_file"]
+
+    """
+        These attributes are also available
+
+        file.filename               # The actual name of the file
+        file.content_type
+        file.content_length
+        file.mimetype
+
+    """
+
+	# C.
+    if file.filename == "":
+        return "Please select a file"
+
+	# D.
+    if file and allowed_file(file.filename):
+        file.filename = secure_filename(file.filename)
+        output   	  = upload_file_to_s3(file, app.config["S3_BUCKET"])
+        return str(output)
+
+    else:
+        return redirect("/")
+
+
