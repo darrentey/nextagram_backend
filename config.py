@@ -11,6 +11,9 @@ class Config(object):
     S3_KEY = os.environ.get('S3_KEY')
     S3_SECRET_KEY = os.environ.get('S3_SECRET_KEY')
     S3_LOCATION  = 'http://{}.s3.amazonaws.com/'.format(S3_BUCKET)
+    GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+    GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+
 
 
 class ProductionConfig(Config):

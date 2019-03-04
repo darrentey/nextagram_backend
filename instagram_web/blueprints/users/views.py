@@ -8,6 +8,7 @@ from models.user import User
 from flask_login import login_user, login_required, LoginManager, current_user
 from werkzeug.utils import secure_filename
 from instagram_web.util.s3_helper import upload_file_to_s3
+from instagram_web.util.google_auth import oauth
 
 
 users_blueprint = Blueprint('users',
@@ -33,18 +34,16 @@ def new():
 
 
 @users_blueprint.route('/', methods=['POST'])
+@login_required
 def create():
     pass
 
 
 @users_blueprint.route('/<username>', methods=["GET"])
 def show(username):
-    pass
+    user = User.get_or_none(User.username == username)
+    return render_template('users/user.html', user=user)
 
-
-@users_blueprint.route('/', methods=["GET"])
-def index():
-    return "USERS"
 
 @users_blueprint.route('/<id>/edit', methods=['GET', 'POST'])
 def edit(id):
@@ -71,8 +70,9 @@ def update(id):
             # Handle what happends when user isn't updated 
 
 @users_blueprint.route('/upload', methods=['GET'])
+@login_required
 def upload():
-    return render_template('users/edit_profile_pic.html')
+    return render_template('users/my_profile.html')
 
 
 @users_blueprint.route("/login", methods=['GET', 'POST'])
@@ -146,3 +146,20 @@ def upload_file():
         return redirect("/")
 
 
+@users_blueprint.route("/login/google")
+def google_login():
+    redirect_uri = url_for('users.authorize', _external=True)
+    return oauth.google.authorize_redirect(redirect_uri)
+
+@users_blueprint.route('/authorize/google')
+def authorize():
+    token = oauth.google.authorize_access_token()
+    response = oauth.google.get('https://www.googleapis.com/oauth2/v2/userinfo').json()
+    print(response)
+    user = User.get_or_none(User.email == response['email'])
+    if user:
+        login_user(user)
+        flash('You have been logged in!', 'success')
+        return redirect(url_for('home'))  
+    # this is a pseudo method, you need to implement it yourself
+    return redirect(url_for('home'))

@@ -31,7 +31,7 @@
               <div class="collapse navbar-collapse" id="navbarToggle">
                 <div class="navbar-nav mr-auto">
                   <a class="nav-item nav-link" href="{{ url_for('home') }}">Home</a>
-                  <a class="nav-item nav-link" href="{{ url_for('user') }}">User</a>
+                  <a class="nav-item nav-link" href="{{ url_for('users.show', username=current_user.username) }}">User</a>
                 </div>
                 <!-- Navbar Right Side -->
                 <div class="navbar-nav">
